@@ -16,8 +16,8 @@ def grid(df, grid_step):
     max_y = np.max(df[:, 1])
 
     print("Zakresy zmiennych:")
-    print(f"X: od {min_x} do {max_x}")
-    print(f"Y: od {min_y} do {max_y}")
+    print(f"X: od {min_x} do {max_x}, odległość: {max_x - min_x}m")
+    print(f"Y: od {min_y} do {max_y}, odległość: {max_y - min_y}m")
     print("")
 
     # Tworzenie siatki
@@ -35,14 +35,19 @@ def main():
     print("")
     data = df.to_numpy()
 
-    # TODO: get those variables from user
-    # either input or create gui
-    grid_step = 0.5  # odleglości pomiędzy siatką
-    min_n_points = 1  # minimalna liczba punktów na siatkę
-    window_size = 2  # określenie rozmiaru okna
+    # Spytanie użytkownika o parametry
+    grid_step = float(input('Rozdzielczość: '))
+    min_n_points = int(input('Minimalna liczba punktów na siatkę: '))
+    window_size = float(input('Rozmiar okna interpolacji: '))
+
+    grid_step = 0.5
+    min_n_points = 1
+    window_size = 1
 
     xv, yv = grid(data, grid_step)
     print(xv.shape)
+
+
 
 
 if __name__ == "__main__":
