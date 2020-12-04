@@ -13,7 +13,7 @@ def load_data():
     return df
 
 
-def grid(df, grid_step):
+def grid(df, spacing):
     min_x = np.min(df[:, 0])
     max_x = np.max(df[:, 0])
     min_y = np.min(df[:, 1])
@@ -25,27 +25,32 @@ def grid(df, grid_step):
     print("")
 
     # Tworzenie siatki
-    x = np.arange(min_x, max_x, grid_step)
-    y = np.arange(min_y, max_y, grid_step)
+    x = np.arange(min_x, max_x, spacing)
+    y = np.arange(min_y, max_y, spacing)
     xx, yy = np.meshgrid(x, y)
     print("Rozmiar siatki grid:", len(x), len(y))
 
     return xx, yy
 
 
-def moving_average(data, xx, yy, min_n_points):
+def moving_average(data, xx, yy, min_n_points, window_size):
     zz = np.full_like(xx, np.nan)
 
-    for outer in tqdm.tqdm([10, 20, 30, 40, 50], desc=" outer", position=0):
-        for inner in tqdm.tqdm(
-            range(outer), desc=" inner loop", position=1, leave=False
-        ):
-            time.sleep(0.05)
-    pass
+    for i in tqdm.tqdm(range(xx.shape[0]), desc=" interpolation"):
+        for j in range(xx.shape[1]):
+            # TODO: wylicz wartosc Z - interpolacja ;)
+            # Należy znaleźć takie punkty które są w zasięgu xx[i, j], yy[i, j]
+            # Odległe maksymalnie o window_size
+            # Przygotowac macierz z odległościami?
+            #   Dla każdej możliwej kombinacji i, j obliczyć odległości wszystkich punktów
+            # Uzyc cdist https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html
+            # Moze przed petla?
+            zz[i, j] = 0
+
+    return zz
 
 
 def plot_surface(X, Y, Z):
-    # TODO: przetestowac
     fig = plt.figure()
     ax = fig.gca(projection="3d")
 
@@ -64,18 +69,18 @@ def main():
     data = df.to_numpy()
 
     # Spytanie użytkownika o parametry
-    grid_step = float(input("Rozdzielczość: "))
+    spacing = float(input("Rozdzielczość: "))
     min_n_points = int(input("Minimalna liczba punktów na siatkę: "))
     window_size = float(input("Rozmiar okna interpolacji: "))
 
-    grid_step = 0.5
-    min_n_points = 1
-    window_size = 1
+    # spacing = 0.5
+    # min_n_points = 1
+    # window_size = 1
 
-    xx, yy = grid(data, grid_step)
+    xx, yy = grid(data, spacing)
     print(xx.shape)
 
-    zz = moving_average(data, xx, yy, min_n_points)
+    zz = moving_average(data, xx, yy, min_n_points, window_size)
 
 
 if __name__ == "__main__":
