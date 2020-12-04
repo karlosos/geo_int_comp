@@ -1,5 +1,9 @@
 import pandas as pd
 import numpy as np
+import tqdm
+import matplotlib
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
 
 
 def load_data():
@@ -29,6 +33,30 @@ def grid(df, grid_step):
     return xx, yy
 
 
+def moving_average(data, xx, yy, min_n_points):
+    zz = np.full_like(xx, np.nan)
+
+    for outer in tqdm.tqdm([10, 20, 30, 40, 50], desc=" outer", position=0):
+        for inner in tqdm.tqdm(
+            range(outer), desc=" inner loop", position=1, leave=False
+        ):
+            time.sleep(0.05)
+    pass
+
+
+def plot_surface(X, Y, Z):
+    # TODO: przetestowac
+    fig = plt.figure()
+    ax = fig.gca(projection="3d")
+
+    X, Y = np.meshgrid(X, Y)
+
+    surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False)
+
+    fig.colorbar(surf, shrink=0.5, aspect=5)
+    plt.show()
+
+
 def main():
     df = load_data()
     print(df.head())
@@ -36,18 +64,18 @@ def main():
     data = df.to_numpy()
 
     # Spytanie użytkownika o parametry
-    grid_step = float(input('Rozdzielczość: '))
-    min_n_points = int(input('Minimalna liczba punktów na siatkę: '))
-    window_size = float(input('Rozmiar okna interpolacji: '))
+    grid_step = float(input("Rozdzielczość: "))
+    min_n_points = int(input("Minimalna liczba punktów na siatkę: "))
+    window_size = float(input("Rozmiar okna interpolacji: "))
 
     grid_step = 0.5
     min_n_points = 1
     window_size = 1
 
-    xv, yv = grid(data, grid_step)
-    print(xv.shape)
+    xx, yy = grid(data, grid_step)
+    print(xx.shape)
 
-
+    zz = moving_average(data, xx, yy, min_n_points)
 
 
 if __name__ == "__main__":
