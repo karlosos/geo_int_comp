@@ -1,7 +1,7 @@
 """
 TODO:
-    - [ ] get parameters from user
-    - [ ] changing circle to rectangle
+    - [x] get parameters from user
+    - [x] changing circle to rectangle
     - [ ] saving to ASCII XYZ
     - [ ] load in qgis
 """
@@ -54,30 +54,38 @@ def structure(data, x, y, window_size):
     return tree
 
 
-def moving_average(data, tree, xx, yy, min_n_points, window_size):
+def moving_average(data, tree, xx, yy, min_n_points, window_size, window_type):
     zz = np.full_like(xx, np.nan)
 
     for i in tqdm.tqdm(range(xx.shape[0]), desc="Interpolacja MA"):
         for j in range(xx.shape[1]):
-            nearby_points = tree.query_ball_point([xx[i, j], yy[i, j]], window_size)
+            current_point = [xx[i, j], yy[i, j]]
+            if window_type == "rect":
+                nearby_points = tree.query_ball_point(current_point, window_size, p=np.inf)
+            elif window_type == "circle":
+                nearby_points = tree.query_ball_point(current_point, window_size, p=2.0)
             if len(nearby_points) > min_n_points:
                 zz[i, j] = np.mean(data[nearby_points, 2])
 
     return zz
 
 
-def idw(data, tree, xx, yy, min_n_points, window_size):
+def idw(data, tree, xx, yy, min_n_points, window_size, idw_exponent, window_type):
     zz = np.full_like(xx, np.nan)
     from scipy.spatial.distance import cdist
 
     for i in tqdm.tqdm(range(xx.shape[0]), desc="Interpolacja IDW"):
         for j in range(xx.shape[1]):
             current_point = [xx[i, j], yy[i, j]]
-            nearby_points = tree.query_ball_point(current_point, window_size)
+            if window_type == "rect":
+                nearby_points = tree.query_ball_point(current_point, window_size, p=np.inf)
+            elif window_type == "circle":
+                nearby_points = tree.query_ball_point(current_point, window_size, p=2.0)
+
             distances = cdist([current_point], data[nearby_points][:, 0:2])
 
             if len(nearby_points) > min_n_points:
-                denominator = distances[0] ** 2 + 1e-10
+                denominator = distances[0] ** idw_exponent + 1e-10
                 zz[i, j] = (np.sum(data[nearby_points, 2] / denominator)) / (
                     np.sum(np.ones_like(denominator) / denominator)
                 )
@@ -99,7 +107,7 @@ def plot(xx, yy, zz):
 
 
 def main():
-    # Wczytywanie argumentów wywołania 
+    # Wczytywanie argumentów wywołania
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", help="plik wejściowy z współrzędnymi XYZ")
     parser.add_argument("--plot", help="czy wyświetlać wizualizacje. Domyślnie false.", action="store_true")
@@ -142,11 +150,10 @@ def main():
     else:
         window_size = args.window_size
 
-    if args.method == None:
+    method = args.method
+    if method not in ["ma", "idw", "both"]:
         print("Ustawiam metodę na ma")
         method = "ma"
-    else:
-        method = args.method
 
     idw_exponent = None
     if method == "idw" or method == "both":
@@ -167,13 +174,25 @@ def main():
 
     tree = structure(data, x, y, window_size)
 
-    # Przeprwoadzanie interpolacji
-    zz = moving_average(data, tree, xx, yy, min_n_points, window_size)
-    plot(xx, yy, zz)
+    # Przeprowadzanie interpolacji
+    if method in ["ma", "both"]:
+        zz = moving_average(data, tree, xx, yy, min_n_points, window_size, window_type)
 
-    zz = idw(data, tree, xx, yy, min_n_points, window_size)
-    plot(xx, yy, zz)
+        if plot:
+            plot(xx, yy, zz)
+
+    if method in ["idw", "both"]:
+        zz = idw(data, tree, xx, yy, min_n_points, window_size, idw_exponent, window_type)
+
+        if plot:
+            plot(xx, yy, zz)
 
 
 if __name__ == "__main__":
     main()
+
+    """
+    Przykładowe uruchomienie:
+    python .\interpolation.py -i "./data/wraki_utm.txt" --plot --window_size=1 --spacing=0.2 --min_n_points=1 --window_type=rect  --method=idw
+    python .\interpolation.py -i "./data/wraki_utm.txt" --plot --window_size=1 --spacing=0.2 --min_n_points=1 --window_type=rect  --method=ma
+    """
