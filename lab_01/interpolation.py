@@ -14,6 +14,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from scipy.spatial import cKDTree
 import time
+import argparse
 
 
 def load_data():
@@ -98,20 +99,75 @@ def plot(xx, yy, zz):
 
 
 def main():
-    spacing = 0.2
-    min_n_points = 1
-    window_size = 0.4
-    file_path = "./data/wraki_utm.txt"
+    # Wczytywanie argumentów wywołania 
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", help="plik wejściowy z współrzędnymi XYZ")
+    parser.add_argument("--plot", help="czy wyświetlać wizualizacje. Domyślnie false.", action="store_true")
+    parser.add_argument("--spacing", help="odległość pomiędzy punktami w interpolacji. Domyślnie 1.", type=float)
+    parser.add_argument("--min_n_points", help="minimalna liczba punktów do interpolacji komórki. Domyślnie 1.", type=int)
+    parser.add_argument("--window_type", help="rodzaj okna do interpolacji. rect lub circle. Domyślnie circle")
+    parser.add_argument("--window_size", help="rozmiar okna do wyszukiwania najbliższych punktów. Domyślnie 1.", type=float)
+    parser.add_argument("-o", help="plik wynikowy ASCII XYZ. Domyślnie brak zapisu do pliku.")
+    parser.add_argument("--method", help="metoda interpolacji. idw, ma lub both. Domyślnie ma (moving_average)")
+    parser.add_argument("--idw_exponent", help="wykładnik w metodzie idw. Domyślnie 2")
 
+    args = parser.parse_args()
+
+    if args.i == None:
+        print("Podaj nazwę pliku wejściowego: -i <nazwa pliku>")
+    else:
+        file_path = args.i
+
+    if args.spacing == None:
+        print("Ustawiam wartość spacing na 1")
+        spacing = 1
+    else:
+        spacing = args.spacing
+
+    if args.min_n_points == None:
+        print("Ustawiam wartość min_n_points na 1")
+        min_n_points = 1
+    else:
+        min_n_points = args.min_n_points
+
+    if args.window_type == None:
+        print("Ustawiam rodzaj okna na okrąg")
+        window_type = "circle"
+    else:
+        window_type = args.window_type
+
+    if args.window_size == None:
+        print("Ustawiam rozmiar okna na 1")
+        window_size = 1
+    else:
+        window_size = args.window_size
+
+    if args.method == None:
+        print("Ustawiam metodę na ma")
+        method = "ma"
+    else:
+        method = args.method
+
+    idw_exponent = None
+    if method == "idw" or method == "both":
+        if args.idw_exponent == None:
+            print("Ustawiam wykładnik w metodzie idw na 2")
+            idw_exponent = 2
+        else:
+            idw_exponent = args.idw_exponent
+
+    # Wczytywanie danych
     t1 = time.time()
     print("Wczytywanie danych...")
     data = np.loadtxt(file_path)
     print("Wczytano dane w:", time.time() - t1, "sekund")
 
+    # Tworzenie siatki i struktury
     xx, yy, x, y = grid(data, spacing)
 
     tree = structure(data, x, y, window_size)
 
+    # Przeprwoadzanie interpolacji
     zz = moving_average(data, tree, xx, yy, min_n_points, window_size)
     plot(xx, yy, zz)
 
