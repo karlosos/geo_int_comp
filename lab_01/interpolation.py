@@ -106,6 +106,13 @@ def plot(xx, yy, zz):
     plt.show()
 
 
+def save_ascii_xyz(file_name, xx, yy, zz):
+    xyz = np.dstack((xx, yy, zz))
+    xyz = xyz.reshape(-1, 3)
+    np.savetxt(file_name, xyz)
+    print(xyz)
+
+
 def main():
     # Wczytywanie argumentów wywołania
     parser = argparse.ArgumentParser()
@@ -178,11 +185,17 @@ def main():
     if method in ["ma", "both"]:
         zz = moving_average(data, tree, xx, yy, min_n_points, window_size, window_type)
 
+        if args.o is not None:
+            save_ascii_xyz(args.o + "_ma.txt", xx, yy, zz)
+
         if plot:
             plot(xx, yy, zz)
 
     if method in ["idw", "both"]:
         zz = idw(data, tree, xx, yy, min_n_points, window_size, idw_exponent, window_type)
+
+        if args.o is not None:
+            save_ascii_xyz(args.o + "_idw.txt", xx, yy, zz)
 
         if plot:
             plot(xx, yy, zz)
