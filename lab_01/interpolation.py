@@ -1,9 +1,26 @@
 """
-TODO:
-    - [x] get parameters from user
-    - [x] changing circle to rectangle
-    - [ ] saving to ASCII XYZ
-    - [ ] load in qgis
+Program przeprowadzający interpolację próbek wczytanych z pliku ASCII XYZ
+
+Przykładowe uruchomienie programu:
+
+    python .\interpolation.py -i "./data/wraki_utm.txt" --plot --window_size=1 --spacing=0.2 --min_n_points=1 --window_type=rect --method=idw --idw_exponent=2
+
+Uruchomi interpolację dla pliku "./data/wraki_utm.txt", dla rozmiaru okna=1m, odległościami w siatce 0.2m, minimalej liczbie punktów=1, okna jako prostokąd, metodą idw z wykładnikiem 2.
+
+    python .\interpolation.py -i "./data/wraki_utm.txt" --window_type=circle --method=ma -o "./data/output/wraki_utm"
+
+Uruchomi interpolację dla pliku "./data/wraki_utm.txt" dla typu okna okrąg i metody moving average. Pozostałe parametry będą domyślne. Wynik interpolacji zostanie zapisany w formacie XYZ do pliku "./data/output/wraki_utm_ma.txt"
+
+Parametry programu:
+
+    -o "nazwa_pliku" - plik wejściowy, parametr wymagany
+    --plot - gdy ustawiono ten parametr wyświetlana jest wizualizacja 2D i 3D interpolacji
+    --window_size=1 - ustawienie rozmiaru okna
+    --spacing=1 - ustawienie rozdzielczości
+    --min_n_points=1 - ustawienie minimalnej liczby punktów
+    --window_type=circle - ustawienie typu okna. Możliwe do ustawienia wartości [circle|rect]
+    --method=ma - metoda interpolacji. Możliwe do wyboru [ma|idw|both]
+    -o "nazwa_pliku" - plik wyjściowy. Jeśli ustawiony, zapisze wynik interpolacji do pliku w formacie ASCII XYZ.
 """
 
 import pandas as pd
@@ -18,6 +35,11 @@ import argparse
 
 
 def load_data():
+    """
+    Funkcja nieużywana. Zostawiam, bo może kiedyś się przyda.
+    Zastąpiono funkcją:
+        data = np.loadtxt(file_path)
+    """
     df = pd.read_csv("./data/wraki_utm.txt", delimiter=" ", header=None)
     df = df.drop(df.columns[[0, 1, 3]], axis=1)
     df.columns = ["X", "Y", "Z"]
@@ -130,6 +152,7 @@ def main():
 
     if args.i == None:
         print("Podaj nazwę pliku wejściowego: -i <nazwa pliku>")
+        return None
     else:
         file_path = args.i
 
@@ -203,9 +226,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-    """
-    Przykładowe uruchomienie:
-    python .\interpolation.py -i "./data/wraki_utm.txt" --plot --window_size=1 --spacing=0.2 --min_n_points=1 --window_type=rect  --method=idw
-    python .\interpolation.py -i "./data/wraki_utm.txt" --plot --window_size=1 --spacing=0.2 --min_n_points=1 --window_type=rect  --method=ma
-    """

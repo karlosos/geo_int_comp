@@ -7,7 +7,6 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", help="plik wejściowy z współrzędnymi XYZ")
     parser.add_argument("--plot", help="czy wyświetlać wizualizacje. Domyślnie false.", action="store_true")
