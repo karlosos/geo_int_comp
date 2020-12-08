@@ -9,7 +9,7 @@ Uruchomi interpolację dla pliku "./data/wraki_utm.txt", dla rozmiaru okna=1m, o
 
     python .\interpolation.py -i "./data/wraki_utm.txt" --window_type=circle --method=ma -o "./data/output/wraki_utm"
 
-Uruchomi interpolację dla pliku "./data/wraki_utm.txt" dla typu okna okrąg i metody moving average. Pozostałe parametry będą domyślne. Wynik interpolacji zostanie zapisany w formacie XYZ do pliku "./data/output/wraki_utm_ma.txt"
+Uruchomi interpolację dla pliku "./data/wraki_utm.txt" dla typu okna okrąg i metody moving average. Pozostałe parametry będą domyślne. Wynik interpolacji zostanie zapisany w formacie UTM XYZ do pliku "./data/output/wraki_utm_ma.txt"
 
 Parametry programu:
 
@@ -20,7 +20,7 @@ Parametry programu:
     --min_n_points=1 - ustawienie minimalnej liczby punktów
     --window_type=circle - ustawienie typu okna. Możliwe do ustawienia wartości [circle|rect]
     --method=ma - metoda interpolacji. Możliwe do wyboru [ma|idw|both]
-    -o "nazwa_pliku" - plik wyjściowy. Jeśli ustawiony, zapisze wynik interpolacji do pliku w formacie ASCII XYZ.
+    -o "nazwa_pliku" - plik wyjściowy. Jeśli ustawiony, zapisze wynik interpolacji do pliku w formacie UTM XYZ.
 """
 
 import pandas as pd
@@ -83,7 +83,9 @@ def moving_average(data, tree, xx, yy, min_n_points, window_size, window_type):
         for j in range(xx.shape[1]):
             current_point = [xx[i, j], yy[i, j]]
             if window_type == "rect":
-                nearby_points = tree.query_ball_point(current_point, window_size, p=np.inf)
+                nearby_points = tree.query_ball_point(
+                    current_point, window_size, p=np.inf
+                )
             elif window_type == "circle":
                 nearby_points = tree.query_ball_point(current_point, window_size, p=2.0)
             if len(nearby_points) > min_n_points:
@@ -100,7 +102,9 @@ def idw(data, tree, xx, yy, min_n_points, window_size, idw_exponent, window_type
         for j in range(xx.shape[1]):
             current_point = [xx[i, j], yy[i, j]]
             if window_type == "rect":
-                nearby_points = tree.query_ball_point(current_point, window_size, p=np.inf)
+                nearby_points = tree.query_ball_point(
+                    current_point, window_size, p=np.inf
+                )
             elif window_type == "circle":
                 nearby_points = tree.query_ball_point(current_point, window_size, p=2.0)
 
@@ -128,7 +132,7 @@ def plot(xx, yy, zz):
     plt.show()
 
 
-def save_ascii_xyz(file_name, xx, yy, zz):
+def save_xyz(file_name, xx, yy, zz):
     xyz = np.dstack((xx, yy, zz))
     xyz = xyz.reshape(-1, 3)
     np.savetxt(file_name, xyz)
@@ -139,13 +143,37 @@ def main():
     # Wczytywanie argumentów wywołania
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", help="plik wejściowy z współrzędnymi XYZ")
-    parser.add_argument("--plot", help="czy wyświetlać wizualizacje. Domyślnie false.", action="store_true")
-    parser.add_argument("--spacing", help="odległość pomiędzy punktami w interpolacji. Domyślnie 1.", type=float)
-    parser.add_argument("--min_n_points", help="minimalna liczba punktów do interpolacji komórki. Domyślnie 1.", type=int)
-    parser.add_argument("--window_type", help="rodzaj okna do interpolacji. rect lub circle. Domyślnie circle")
-    parser.add_argument("--window_size", help="rozmiar okna do wyszukiwania najbliższych punktów. Domyślnie 1.", type=float)
-    parser.add_argument("-o", help="plik wynikowy ASCII XYZ. Domyślnie brak zapisu do pliku.")
-    parser.add_argument("--method", help="metoda interpolacji. idw, ma lub both. Domyślnie ma (moving_average)")
+    parser.add_argument(
+        "--plot",
+        help="czy wyświetlać wizualizacje. Domyślnie false.",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--spacing",
+        help="odległość pomiędzy punktami w interpolacji. Domyślnie 1.",
+        type=float,
+    )
+    parser.add_argument(
+        "--min_n_points",
+        help="minimalna liczba punktów do interpolacji komórki. Domyślnie 1.",
+        type=int,
+    )
+    parser.add_argument(
+        "--window_type",
+        help="rodzaj okna do interpolacji. rect lub circle. Domyślnie circle",
+    )
+    parser.add_argument(
+        "--window_size",
+        help="rozmiar okna do wyszukiwania najbliższych punktów. Domyślnie 1.",
+        type=float,
+    )
+    parser.add_argument(
+        "-o", help="plik wynikowy ASCII XYZ. Domyślnie brak zapisu do pliku."
+    )
+    parser.add_argument(
+        "--method",
+        help="metoda interpolacji. idw, ma lub both. Domyślnie ma (moving_average)",
+    )
     parser.add_argument("--idw_exponent", help="wykładnik w metodzie idw. Domyślnie 2")
 
     args = parser.parse_args()
@@ -209,16 +237,18 @@ def main():
         zz = moving_average(data, tree, xx, yy, min_n_points, window_size, window_type)
 
         if args.o is not None:
-            save_ascii_xyz(args.o + "_ma.txt", xx, yy, zz)
+            save_xyz(args.o + "_ma.txt", xx, yy, zz)
 
         if plot:
             plot(xx, yy, zz)
 
     if method in ["idw", "both"]:
-        zz = idw(data, tree, xx, yy, min_n_points, window_size, idw_exponent, window_type)
+        zz = idw(
+            data, tree, xx, yy, min_n_points, window_size, idw_exponent, window_type
+        )
 
         if args.o is not None:
-            save_ascii_xyz(args.o + "_idw.txt", xx, yy, zz)
+            save_xyz(args.o + "_idw.txt", xx, yy, zz)
 
         if plot:
             plot(xx, yy, zz)
