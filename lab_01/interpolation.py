@@ -133,9 +133,12 @@ def plot(xx, yy, zz):
 
 
 def save_xyz(file_name, xx, yy, zz):
+    """
+    Zapis do pliku, który można wczytać w QGIS jako warstwa rastrowa
+    """
     xyz = np.dstack((xx, yy, zz))
     xyz = xyz.reshape(-1, 3)
-    np.savetxt(file_name, xyz)
+    np.savetxt(file_name, xyz, header="x y z", comments="")
     print(xyz)
 
 

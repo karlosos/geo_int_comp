@@ -30,7 +30,7 @@ def main():
     # Wczytanie danych
     t1 = time.time()
     print("Wczytywanie danych...")
-    data = np.loadtxt(file_path)
+    data = np.loadtxt(file_path, skiprows=1)
     print("Wczytano dane w:", time.time() - t1, "sekund")
 
     # Tworzenie grida
