@@ -42,21 +42,27 @@ def to_blocks(img, window_size):
     """
 
     height, width = img.shape
+    print("Before padding:")
+    print(height)
+    print(width)
 
     if height % window_size != 0 or width % window_size != 0:
-        # TODO: change to add padding
-        raise ValueError(
-            f"Dimension of input image ({img.shape}) must be divided by {window_size}."
-        )
+        width_padding = width + (window_size - (width % window_size))
+        height_padding = height + (window_size - (height % window_size))
+        img_padding = np.empty((height_padding, width_padding))
+        img_padding[:] = np.nan
+        img_padding[0:height, 0:width] = img
+        img = img_padding
+        height, width = img.shape
 
     num_of_vectors = height // window_size * width // window_size
-    blocks = np.zeros((num_of_vectors, window_size ** 2))
+    blocks = []
 
     index = 0
     ws = window_size
     for i in range(height // ws):
         for j in range(width // ws):
-            blocks[index, :] = img[i * ws : i * ws + ws, j * ws : j * ws + ws].flat
+            blocks.append(img[i * ws : i * ws + ws, j * ws : j * ws + ws])
             index += 1
 
     return blocks
@@ -149,5 +155,22 @@ def main():
     # Kodowanie entropijne wektora współczynników
 
 
+def test():
+    img = np.array([[1, 1, 1, 0, 0], [1, 1, 1, 0, 0], [0, 0, 0, 0, 0]])
+    block_size = 2
+    blocks = to_blocks(img, window_size=block_size)
+    dct_blocks = []
+    for block in blocks:
+        has_none = np.any(np.isnan(block))
+        if not has_none:
+            dct_blocks.append(dct(block, norm='ortho'))
+        else:
+            dct_blocks.append(np.full((block_size, block_size), np.nan))
+
+    print("DCT:")
+    print(dct_blocks)
+
+
 if __name__ == "__main__":
-    main()
+    # main()
+    test()
