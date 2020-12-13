@@ -8,7 +8,8 @@ import argparse
 from interpolation import plot
 import time
 import numpy as np
-from scipy.fftpack import fft, dct
+from scipy.fftpack import dct, idct
+from scipy.fftpack import dctn, idctn
 
 
 def load_data(file_path):
@@ -155,9 +156,10 @@ def main():
     # Kodowanie entropijne wektora współczynników
 
 
-def test():
-    img = np.array([[1, 1, 1, 0, 0], [1, 1, 1, 0, 0], [0, 0, 0, 0, 0]])
-    block_size = 2
+def test_block_division():
+    # Test block division
+    img = np.arange(36).reshape(6, 6)
+    block_size = 3
     blocks = to_blocks(img, window_size=block_size)
     dct_blocks = []
     for block in blocks:
@@ -170,7 +172,24 @@ def test():
     print("DCT:")
     print(dct_blocks)
 
+def test_dct_idct():
+    block_size = 5
+    block = np.arange(block_size**2).reshape(block_size, block_size)
+    print("Block input:")
+    print(block)
+
+    block_dct = dctn(block, norm='ortho')
+    print("Block dct:")
+    print(block_dct)
+
+    # Ortho, żeby była normalizacja
+    block_idct = idctn(block_dct, norm='ortho')
+    np.set_printoptions(suppress=True)
+    print("Block idct:")
+    print(block_idct)
+
 
 if __name__ == "__main__":
     # main()
-    test()
+    # test()
+    test_dct_idct()
