@@ -206,7 +206,7 @@ def test_dct_block_reduction_triangle():
     # Will have to control k parameter
     # k = 0 is half
     # k = block_size - 1 is max
-    block_dct_reduction_padded = np.flip(np.triu(np.flip(block_dct, axis=1), k=-(block_size-1)), axis=1)
+    block_dct_reduction_padded = np.flip(np.triu(np.flip(block_dct, axis=1), k=-(block_size)), axis=1)
     print(block_dct_reduction_padded)
 
     block_idct = idctn(block_dct_reduction_padded, norm="ortho")
@@ -214,10 +214,21 @@ def test_dct_block_reduction_triangle():
     print("Block idct:")
     print(block_idct)
 
+def triangle_matrix(a):
+    m, n = a.shape
+    crop_positions = np.arange(-m+1, m)
+
+    for k in crop_positions:
+        a_out = np.flip(np.triu(np.flip(a, axis=1), k=k), axis=1)
+        print(a_out)
+
 
 if __name__ == "__main__":
     # main()
     # test()
     # test_dct_idct()
     # test_dct_block_reduction()
-    test_dct_block_reduction_triangle()
+    # test_dct_block_reduction_triangle()
+
+    a = np.arange(1, 37).reshape(6, 6)
+    triangle_matrix(a)
