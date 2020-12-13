@@ -188,8 +188,33 @@ def test_dct_idct():
     print("Block idct:")
     print(block_idct)
 
+def test_dct_block_reduction():
+    block_size = 3
+    block = np.arange(block_size**2).reshape(block_size, block_size)
+    print("Block input:")
+    print(block)
+
+    block_dct = dctn(block, norm='ortho')
+    print("Block dct:")
+    print(block_dct)
+    
+    # Reduction with rectangle
+    reduction = 2
+    block_dct_reduction = block_dct[0:reduction, 0:reduction]
+    print("Block dct reduction:")
+    # print(block_dct_reduction)
+    block_dct_reduction_padded = np.zeros((block_size, block_size))
+    block_dct_reduction_padded[0:reduction, 0:reduction] = block_dct_reduction
+    print(block_dct_reduction_padded)
+
+    block_idct = idctn(block_dct_reduction_padded, norm='ortho')
+    np.set_printoptions(suppress=True)
+    print("Block idct:")
+    print(block_idct)
+
 
 if __name__ == "__main__":
     # main()
     # test()
-    test_dct_idct()
+    # test_dct_idct()
+    test_dct_block_reduction()
