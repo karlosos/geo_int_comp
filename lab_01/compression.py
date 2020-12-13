@@ -222,6 +222,15 @@ def triangle_matrix(a):
         a_out = np.flip(np.triu(np.flip(a, axis=1), k=k), axis=1)
         print(a_out)
 
+def rectangle_matrix(a):
+    m, n = a.shape
+    crop_positions = np.arange(1, m+1)
+
+    for k in crop_positions:
+        a_out = np.zeros(a.shape)
+        a_out[:k, :k] = a[:k, :k]
+        print(a_out)
+
 
 if __name__ == "__main__":
     # main()
@@ -231,4 +240,5 @@ if __name__ == "__main__":
     # test_dct_block_reduction_triangle()
 
     a = np.arange(1, 37).reshape(6, 6)
-    triangle_matrix(a)
+    # triangle_matrix(a)
+    rectangle_matrix(a)
