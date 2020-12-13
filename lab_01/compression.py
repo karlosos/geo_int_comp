@@ -109,27 +109,6 @@ def command_line_arguments():
     return file_path, block_size, decompression_acc
 
 
-def zig_zag_index(k, n):
-    # upper side of interval
-    if k >= n * (n + 1) // 2:
-        i, j = zig_zag_index(n * n - 1 - k, n)
-        return n - 1 - i, n - 1 - j
-
-    # lower side of interval
-    i = int((np.sqrt(1 + 8 * k) - 1) / 2)
-    j = k - i * (i + 1) // 2
-    return (j, i - j) if i & 1 else (i - j, j)
-
-
-def zig_zag_value(i, j, n):
-    # upper side of interval
-    if i + j >= n:
-        return n * n - 1 - zig_zag_value(n - 1 - i, n - 1 - j, n)
-    # lower side of interval
-    k = (i + j) * (i + j + 1) // 2
-    return k + i if (i + j) & 1 else k + j
-
-
 def main():
     # Argumenty linii komend
     file_path, block_size, decompression_acc = command_line_arguments()
@@ -147,13 +126,7 @@ def main():
         if not has_none:
             dct_blocks.append(dct(block))
         else:
-            dct_blocks.append(np.empty((block_size, block_size)))
-
-    # Kwantyzacja współczynników transformaty kosinusowej
-
-    # Zamiana tablicy współczynników na wektor
-
-    # Kodowanie entropijne wektora współczynników
+            dct_blocks.append(np.nan)
 
 
 def test_block_division():
@@ -165,39 +138,44 @@ def test_block_division():
     for block in blocks:
         has_none = np.any(np.isnan(block))
         if not has_none:
-            dct_blocks.append(dct(block, norm='ortho'))
+            dct_blocks.append(dct(block, norm="ortho"))
         else:
             dct_blocks.append(np.full((block_size, block_size), np.nan))
 
     print("DCT:")
     print(dct_blocks)
 
+
 def test_dct_idct():
     block_size = 5
-    block = np.arange(block_size**2).reshape(block_size, block_size)
+    block = np.arange(block_size ** 2).reshape(block_size, block_size)
     print("Block input:")
     print(block)
 
-    block_dct = dctn(block, norm='ortho')
+    block_dct = dctn(block, norm="ortho")
     print("Block dct:")
     print(block_dct)
 
     # Ortho, żeby była normalizacja
-    block_idct = idctn(block_dct, norm='ortho')
+    block_idct = idctn(block_dct, norm="ortho")
     np.set_printoptions(suppress=True)
     print("Block idct:")
     print(block_idct)
 
+
 def test_dct_block_reduction():
+    """
+    Reduction with rectangle
+    """
     block_size = 3
-    block = np.arange(block_size**2).reshape(block_size, block_size)
+    block = np.arange(block_size ** 2).reshape(block_size, block_size)
     print("Block input:")
     print(block)
 
-    block_dct = dctn(block, norm='ortho')
+    block_dct = dctn(block, norm="ortho")
     print("Block dct:")
     print(block_dct)
-    
+
     # Reduction with rectangle
     reduction = 2
     block_dct_reduction = block_dct[0:reduction, 0:reduction]
@@ -207,7 +185,31 @@ def test_dct_block_reduction():
     block_dct_reduction_padded[0:reduction, 0:reduction] = block_dct_reduction
     print(block_dct_reduction_padded)
 
-    block_idct = idctn(block_dct_reduction_padded, norm='ortho')
+    block_idct = idctn(block_dct_reduction_padded, norm="ortho")
+    np.set_printoptions(suppress=True)
+    print("Block idct:")
+    print(block_idct)
+
+def test_dct_block_reduction_triangle():
+    block_size = 3
+    block = np.arange(block_size ** 2).reshape(block_size, block_size)
+    print("Block input:")
+    print(block)
+
+    block_dct = dctn(block, norm="ortho")
+    print("Block dct:")
+    print(block_dct)
+
+    # Reduction with rectangle
+    print("Block dct reduction:")
+    # print(block_dct_reduction)
+    # Will have to control k parameter
+    # k = 0 is half
+    # k = block_size - 1 is max
+    block_dct_reduction_padded = np.flip(np.triu(np.flip(block_dct, axis=1), k=-(block_size-1)), axis=1)
+    print(block_dct_reduction_padded)
+
+    block_idct = idctn(block_dct_reduction_padded, norm="ortho")
     np.set_printoptions(suppress=True)
     print("Block idct:")
     print(block_idct)
@@ -217,4 +219,5 @@ if __name__ == "__main__":
     # main()
     # test()
     # test_dct_idct()
-    test_dct_block_reduction()
+    # test_dct_block_reduction()
+    test_dct_block_reduction_triangle()
