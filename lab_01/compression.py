@@ -4,6 +4,7 @@ import numpy as np
 from scipy.fftpack import dctn, idctn
 
 from zigzag import zigzag, reverse_zigzag
+from interpolation import plot
 
 
 def load_data(file_path):
@@ -51,7 +52,19 @@ def to_blocks(img, window_size):
             blocks.append(img[i * ws : i * ws + ws, j * ws : j * ws + ws])
             index += 1
 
-    return blocks
+    return blocks, img
+
+
+def from_blocks(blocks, block_size, image_shape):
+    image = np.zeros(image_shape)
+    height, width = image.shape
+    ws = block_size
+    index = 0
+    for i in range(height // ws):
+        for j in range(width // ws):
+            image[i * ws : i * ws + ws, j * ws : j * ws + ws] = blocks[index]
+            index += 1
+    return image
 
 
 def find_shortest_components(block, acceptable_error):
@@ -105,11 +118,28 @@ def command_line_arguments():
         block_size = args.block_size
 
     if args.decompression_acc is None:
-        decompression_acc = 5
+        decompression_acc = 0.05
     else:
         decompression_acc = args.decompression_acc
 
     return file_path, block_size, decompression_acc
+
+
+def decompress(dct_components, block_size, shape):
+    block_shape = (block_size, block_size)
+    _, positions = zigzag(np.zeros(block_shape))
+    blocks = []
+    empty_block = np.full(block_shape, np.nan)
+    for component in dct_components:
+        if component is not None:
+            block_dct_components = reverse_zigzag(component, positions)
+            block_idct = idctn(block_dct_components, norm="ortho")
+            blocks.append(block_idct)
+        else:
+            blocks.append(empty_block)
+
+    out = from_blocks(blocks, block_size, shape)
+    return out
 
 
 def main():
@@ -120,7 +150,8 @@ def main():
     X, Y, Z = load_data(file_path)
 
     # Podzial na bloki
-    blocks = to_blocks(Z, block_size)
+    print("Compression...")
+    blocks, image_padding = to_blocks(Z, block_size)
 
     # DCT w blokach
     dct_components = []
@@ -132,7 +163,20 @@ def main():
             )
             dct_components.append(components)
         else:
-            dct_components.append(np.nan)
+            dct_components.append(None)
+
+    # Decompression
+    print("Decompression...")
+    decompressed = decompress(dct_components, block_size, image_padding.shape)
+
+    error = np.nanmax(np.abs(decompressed - image_padding))
+    print("Err:", error)
+
+    # Plotting
+    # TODO: what about x, y, z?
+    # Need to reconsider this :O
+    image_out = image_padding[:Z.shape[0], :Z.shape[1]]
+    plot(X, Y, image_out)
 
 
 if __name__ == "__main__":

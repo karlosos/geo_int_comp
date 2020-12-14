@@ -3,7 +3,7 @@ from scipy.fftpack import dctn, idctn
 
 import numpy as np
 
-from compression import to_blocks, find_shortest_components
+from compression import to_blocks, find_shortest_components, from_blocks
 from zigzag import zigzag, reverse_zigzag
 
 
@@ -49,7 +49,7 @@ def test_dct_idct():
 
 def test_dct_block_reduction():
     """
-    This function tests how rectangle reduction works 
+    This function tests how rectangle reduction works
 
     Values are close to input
     """
@@ -79,7 +79,7 @@ def test_dct_block_reduction():
 
 def test_dct_block_reduction_triangle():
     """
-    This function tests how triangle reduction works 
+    This function tests how triangle reduction works
 
     Values are close to input
     """
@@ -239,3 +239,21 @@ def test_shortest_components_single_block():
     block_idct = idctn(block_dct_components, norm="ortho")
     print(block_idct)
     print(np.max(np.abs(block - block_idct)))
+
+
+def test_from_blocks():
+    width = 6
+    height = 4
+    a = np.arange(0, height * width).reshape(width, height)
+
+    blocks, padded_img = to_blocks(a, 4)
+
+    a_out = from_blocks(blocks, 4, padded_img.shape)
+
+    print(np.allclose(a_out, padded_img, equal_nan=True))
+
+
+if __name__ == "__main__":
+    test_shortest_components_single_block()
+    test_from_blocks()
+
