@@ -120,10 +120,14 @@ def main():
     blocks = to_blocks(Z, block_size)
 
     # DCT w blokach
+    # TODO: find shortest len of components
+    print("Blocks:")
     dct_blocks = []
     for block in blocks:
         has_none = np.any(np.isnan(block))
         if not has_none:
+            print(block)
+            breakpoint()
             dct_blocks.append(dct(block))
         else:
             dct_blocks.append(np.nan)
@@ -232,6 +236,40 @@ def rectangle_matrix(a):
         print(a_out)
 
 
+def test_single_block():
+    acceptable_error = 0.05
+    block = np.array([[-5.20027311, -5.24577522, -5.26438249, -5.28278582, -5.28943763,
+            -5.28620667, -5.22991674, -5.33      ],
+           [-5.22109916, -5.24805949, -5.26489261, -5.28189572, -5.28784972,
+            -5.28336978, -5.28205847, -5.32737509],
+           [-5.22052606, -5.24764238, -5.26266829, -5.27922573, -5.28511089,
+            -5.28144084, -5.29060727, -5.32440359],
+           [-5.21491611, -5.24384541, -5.25877567, -5.27448409, -5.28015134,
+            -5.26120412, -5.30130115, -5.32732734],
+           [-5.20352587, -5.23489846, -5.25087798, -5.26483021, -5.26682295,
+            -5.23236983, -5.28127881, -5.32623842],
+           [-5.19568956, -5.2264212 , -5.24397157, -5.25615359, -5.2282465 ,
+            -5.25661258, -5.30286088, -5.33032184],
+           [-5.18668727, -5.21677869, -5.23435284, -5.24922688, -5.25531286,
+            -5.25587859, -5.28376752, -5.31631953],
+           [-5.1785295 , -5.20611774, -5.2237025 , -5.23685771, -5.2353568 ,
+            -5.25431689, -5.28182451, -5.31847462]])
+
+    from zigzag import zigzag, reverse_zigzag
+    block_dct = dctn(block, norm="ortho")
+    block_dct_zigzag, positions = zigzag(block_dct)
+
+    for i in range(len(block_dct_zigzag), 1, -1):
+        block_dct_components = reverse_zigzag(block_dct_zigzag, positions, i)
+        print(i)
+        # print(block_dct_components)
+        block_idct = idctn(block_dct_components, norm="ortho")
+        error = np.sum(np.abs(block - block_idct))
+        print(error)
+        if error > acceptable_error:
+            return prev_block_dct_components
+        prev_block_dct_components = block_dct_components
+
 if __name__ == "__main__":
     # main()
     # test()
@@ -239,6 +277,7 @@ if __name__ == "__main__":
     # test_dct_block_reduction()
     # test_dct_block_reduction_triangle()
 
-    a = np.arange(1, 37).reshape(6, 6)
+#     a = np.arange(1, 37).reshape(6, 6)
     # triangle_matrix(a)
-    rectangle_matrix(a)
+    # rectangle_matrix(a)
+    test_single_block()
