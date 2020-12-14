@@ -31,7 +31,7 @@ def zigzag(a):
     return output_vector, positions
 
 
-def reverse_zigzag(v, positions, length):
+def reverse_zigzag(v, positions, length=None):
     """
     Create array from zigzag vector
 
@@ -40,10 +40,11 @@ def reverse_zigzag(v, positions, length):
     :param length: length of vector to deconstruction. Can be less than len(v)
     :returns:
     """
-    m = int(np.sqrt(len(v)))
+    m = int(np.sqrt(len(positions)))
     a = np.zeros((m, m))
 
-    v = v[:length]
+    if length is not None:
+        v = v[:length]
 
     for i in range(len(v)):
         j, k = positions[i]

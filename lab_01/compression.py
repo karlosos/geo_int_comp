@@ -11,6 +11,8 @@ import numpy as np
 from scipy.fftpack import dct, idct
 from scipy.fftpack import dctn, idctn
 
+from zigzag import zigzag, reverse_zigzag
+
 
 def load_data(file_path):
     # Wczytanie danych
@@ -27,14 +29,6 @@ def load_data(file_path):
     X, Y = np.meshgrid(x, y)
     Z = z.reshape(X.shape)
     return X, Y, Z
-
-
-def blocks(Z):
-    heigh, width = Z.shape
-
-    for i in range(0, height, 5):
-        for j in range(0, width, 5):
-            Z[i : i + 5, j : j + 5]
 
 
 def to_blocks(img, window_size):
@@ -56,7 +50,6 @@ def to_blocks(img, window_size):
         img = img_padding
         height, width = img.shape
 
-    num_of_vectors = height // window_size * width // window_size
     blocks = []
 
     index = 0
@@ -67,6 +60,20 @@ def to_blocks(img, window_size):
             index += 1
 
     return blocks
+
+
+def find_shortest_components(block, acceptable_error):
+    block_dct = dctn(block, norm="ortho")
+    block_dct_zigzag, positions = zigzag(block_dct)
+    prev_block_dct_components = None
+    for i in range(len(block_dct_zigzag), 0, -1):
+        block_dct_components = reverse_zigzag(block_dct_zigzag, positions, i)
+        block_idct = idctn(block_dct_components, norm="ortho")
+        error = np.max(np.abs(block - block_idct))
+        if error > acceptable_error:
+            return prev_block_dct_components
+        prev_block_dct_components = block_dct_zigzag[:i] 
+    return prev_block_dct_components
 
 
 def command_line_arguments():
@@ -236,6 +243,8 @@ def rectangle_matrix(a):
         print(a_out)
 
 
+
+
 def test_single_block():
     acceptable_error = 0.05
     block = np.array([[-5.20027311, -5.24577522, -5.26438249, -5.28278582, -5.28943763,
@@ -255,20 +264,16 @@ def test_single_block():
            [-5.1785295 , -5.20611774, -5.2237025 , -5.23685771, -5.2353568 ,
             -5.25431689, -5.28182451, -5.31847462]])
 
-    from zigzag import zigzag, reverse_zigzag
-    block_dct = dctn(block, norm="ortho")
-    block_dct_zigzag, positions = zigzag(block_dct)
+    block_dct_zigzag = find_shortest_components(block, acceptable_error)
+    print(block_dct_zigzag)
 
-    for i in range(len(block_dct_zigzag), 1, -1):
-        block_dct_components = reverse_zigzag(block_dct_zigzag, positions, i)
-        print(i)
-        # print(block_dct_components)
-        block_idct = idctn(block_dct_components, norm="ortho")
-        error = np.sum(np.abs(block - block_idct))
-        print(error)
-        if error > acceptable_error:
-            return prev_block_dct_components
-        prev_block_dct_components = block_dct_components
+    _, positions = zigzag(np.zeros(block.shape))
+    block_dct_components = reverse_zigzag(block_dct_zigzag, positions)
+    block_idct = idctn(block_dct_components, norm="ortho")
+    print(block_idct)
+    print(np.max(np.abs(block - block_idct)))
+
+
 
 if __name__ == "__main__":
     # main()
