@@ -180,7 +180,23 @@ def compression(X, Y, Z, block_size, decompression_acc):
             dct_components.append(components)
         else:
             dct_components.append(None)
-    # TODO: saving to file
+    # Saving to file
+    import pickle
+
+    filename = "compressed.pckl"
+    outfile = open(filename, "wb")
+    data = (
+        dct_components,
+        block_size,
+        image_padding.shape,
+        Z.shape,
+        x_start,
+        y_start,
+        grid_step,
+    )
+    pickle.dump(data, outfile)
+    outfile.close()
+
     return (
         dct_components,
         block_size,
@@ -210,8 +226,9 @@ def decompression(
 
 
 def test_compression_decompression():
-    # Argumenty linii komend
-    file_path, block_size, decompression_acc = command_line_arguments()
+    file_path = "./data/output/wraki_utm_idw.txt"
+    block_size = 8
+    decompression_acc = 0.05
 
     # Dzialanie
     X, Y, Z = load_data(file_path)
@@ -238,11 +255,9 @@ def test_compression_decompression():
     )
 
 
-def test_compression_decompression():
+def main():
     # Argumenty linii komend
-    file_path = "./data/output/wraki_utm_idw.txt"
-    block_size = 8
-    decompression_acc = 0.05
+    file_path, block_size, decompression_acc = command_line_arguments()
 
     # Dzialanie
     X, Y, Z = load_data(file_path)
