@@ -162,7 +162,7 @@ def plot_diff(xx, yy, orig_z, compress_z):
     plt.show()
 
 
-def compression(X, Y, Z, block_size, decompression_acc):
+def compression(X, Y, Z, block_size, decompression_acc, output_path):
     t1 = time.time()
     # Obliczenie danych
     x_start = X[0, 0]
@@ -189,8 +189,7 @@ def compression(X, Y, Z, block_size, decompression_acc):
     console.print(f"Skompresowano dane w [bold green]{np.round(t, 3)}[/bold green] s.")
 
     # Saving to file
-    filename = "compressed.pckl"
-    outfile = open(filename, "wb")
+    outfile = open(output_path, "wb")
     data = (
         dct_components,
         block_size,
@@ -243,13 +242,14 @@ def print_options(file_path, block_size, decompression_acc):
 
 
 def test_compression_decompression():
-    file_path = "./data/output/UTM-obrotnica_idw.txt"
-    block_size = 32
-    decompression_acc = 0.05
+    file_path = "./data/output/wraki_utm_idw.txt"
+    output_path = file_path + "_compressed.pckl"
+    block_size = 8
+    decompression_acc = 0.1
 
     print_options(file_path, block_size, decompression_acc)
 
-    # Kompresja 
+    # Kompresja
     X, Y, Z = load_data(file_path)
 
     (
@@ -260,9 +260,9 @@ def test_compression_decompression():
         x_start,
         y_start,
         grid_step,
-    ) = compression(X, Y, Z, block_size, decompression_acc)
+    ) = compression(X, Y, Z, block_size, decompression_acc, output_path)
 
-    # Dekompresja 
+    # Dekompresja
     Z_out = decompression(
         dct_components,
         block_size,
@@ -275,6 +275,22 @@ def test_compression_decompression():
 
     # Porównanie różnicy
     plot_diff(X, Y, Z, Z_out)
+
+    # Porównanie rozmiarów
+    import os
+
+    input_size = os.stat(file_path).st_size
+    output_size = os.stat(output_path).st_size
+    console = Console()
+    console.print(
+        f"Rozmiar przed kompresją: [bold red]{np.round(input_size / (1024 * 1024), 3)}[/bold red] MB"
+    )
+    console.print(
+        f"Rozmiar po kompresji: [bold green]{np.round(output_size / (1024 * 1024), 3)}[/bold green] MB"
+    )
+    console.print(
+        f"Współczynnik kompresji: [bold green]{np.round(input_size/output_size)}  [{np.round(output_size / input_size * 100)}%][/bold green]"
+    )
 
 
 def main():
