@@ -2,25 +2,31 @@ import argparse
 import time
 import numpy as np
 from scipy.fftpack import dctn, idctn
+from tqdm import tqdm
+from rich.console import Console
+import pickle
 
 from zigzag import zigzag, reverse_zigzag
 from interpolation import plot
 
 
 def load_data(file_path):
-    # Wczytanie danych
-    t1 = time.time()
-    print("Wczytywanie danych...")
-    data = np.loadtxt(file_path, skiprows=1)
-    print("Wczytano dane w:", time.time() - t1, "sekund")
+    console = Console()
 
-    # Tworzenie grida
-    x = np.unique(data[:, 0])
-    y = np.unique(data[:, 1])
-    z = data[:, 2]
+    with console.status("[bold green]Wczytywanie danych...") as status:
+        # Wczytanie danych
+        t1 = time.time()
+        data = np.loadtxt(file_path, skiprows=1)
 
-    X, Y = np.meshgrid(x, y)
-    Z = z.reshape(X.shape)
+        # Tworzenie grida
+        x = np.unique(data[:, 0])
+        y = np.unique(data[:, 1])
+        z = data[:, 2]
+
+        X, Y = np.meshgrid(x, y)
+        Z = z.reshape(X.shape)
+    t = time.time() - t1
+    console.print(f"Wczytano dane w [bold green]{np.round(t)}[/bold green] s.")
     return X, Y, Z
 
 
@@ -30,9 +36,6 @@ def to_blocks(img, window_size):
     """
 
     height, width = img.shape
-    print("Before padding:")
-    print(height)
-    print(width)
 
     if height % window_size != 0 or width % window_size != 0:
         width_padding = width + (window_size - (width % window_size))
@@ -130,7 +133,7 @@ def decompression_blocks(dct_components, block_size, shape):
     _, positions = zigzag(np.zeros(block_shape))
     blocks = []
     empty_block = np.full(block_shape, np.nan)
-    for component in dct_components:
+    for component in tqdm(dct_components, desc="Dekompresja"):
         if component is not None:
             block_dct_components = reverse_zigzag(component, positions)
             block_idct = idctn(block_dct_components, norm="ortho")
@@ -160,18 +163,18 @@ def plot_diff(xx, yy, orig_z, compress_z):
 
 
 def compression(X, Y, Z, block_size, decompression_acc):
+    t1 = time.time()
     # Obliczenie danych
     x_start = X[0, 0]
     y_start = Y[0, 0]
     grid_step = X[0, 1] - X[0, 0]
 
     # Podzial na bloki
-    print("Compression...")
     blocks, image_padding = to_blocks(Z, block_size)
 
     # DCT w blokach
     dct_components = []
-    for block in blocks:
+    for block in tqdm(blocks, desc="Kompresja"):
         has_none = np.any(np.isnan(block))
         if not has_none:
             components = find_shortest_components(
@@ -180,9 +183,12 @@ def compression(X, Y, Z, block_size, decompression_acc):
             dct_components.append(components)
         else:
             dct_components.append(None)
-    # Saving to file
-    import pickle
 
+    t = time.time() - t1
+    console = Console()
+    console.print(f"Skompresowano dane w [bold green]{np.round(t, 3)}[/bold green] s.")
+
+    # Saving to file
     filename = "compressed.pckl"
     outfile = open(filename, "wb")
     data = (
@@ -211,8 +217,11 @@ def compression(X, Y, Z, block_size, decompression_acc):
 def decompression(
     dct_components, block_size, padded_shape, orig_shape, x_start, y_start, grid_step
 ):
-    print("Decompression...")
+    t1 = time.time()
     decompressed = decompression_blocks(dct_components, block_size, padded_shape)
+    t = time.time() - t1
+    console = Console()
+    console.print(f"Odtworzono dane w [bold green]{np.round(t, 3)}[/bold green] s.")
 
     # Plotting
     x_end = x_start + orig_shape[1] * (grid_step)
@@ -222,13 +231,23 @@ def decompression(
 
     X, Y = np.meshgrid(xx, yy)
     image_out = decompressed[: orig_shape[0], : orig_shape[1]]
-    plot(X, Y, image_out)
+    # plot(X, Y, image_out)
+    return image_out
+
+
+def print_options(file_path, block_size, decompression_acc):
+    console = Console()
+    console.print(f"Plik: [bold cyan]{file_path}[/bold cyan]")
+    console.print(f"Rozmiar bloku: [bold cyan]{block_size}[/bold cyan]")
+    console.print(f"Zadana dokładność: [bold cyan]{decompression_acc}[/bold cyan]")
 
 
 def test_compression_decompression():
-    file_path = "./data/output/wraki_utm_idw.txt"
+    file_path = "./data/output/UTM-obrotnica_idw.txt"
     block_size = 8
     decompression_acc = 0.05
+
+    print_options(file_path, block_size, decompression_acc)
 
     # Dzialanie
     X, Y, Z = load_data(file_path)
