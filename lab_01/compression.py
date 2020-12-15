@@ -244,12 +244,12 @@ def print_options(file_path, block_size, decompression_acc):
 
 def test_compression_decompression():
     file_path = "./data/output/UTM-obrotnica_idw.txt"
-    block_size = 8
+    block_size = 32
     decompression_acc = 0.05
 
     print_options(file_path, block_size, decompression_acc)
 
-    # Dzialanie
+    # Kompresja 
     X, Y, Z = load_data(file_path)
 
     (
@@ -262,8 +262,8 @@ def test_compression_decompression():
         grid_step,
     ) = compression(X, Y, Z, block_size, decompression_acc)
 
-    # Decompression
-    decompression(
+    # Dekompresja 
+    Z_out = decompression(
         dct_components,
         block_size,
         padded_shape,
@@ -272,6 +272,9 @@ def test_compression_decompression():
         y_start,
         grid_step,
     )
+
+    # Porównanie różnicy
+    plot_diff(X, Y, Z, Z_out)
 
 
 def main():
