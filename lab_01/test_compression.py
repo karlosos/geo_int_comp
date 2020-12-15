@@ -3,7 +3,14 @@ from scipy.fftpack import dctn, idctn
 
 import numpy as np
 
-from compression import to_blocks, find_shortest_components, from_blocks
+from compression import (
+    to_blocks,
+    find_shortest_components,
+    from_blocks,
+    load_data,
+    plot_diff,
+    decompress,
+)
 from zigzag import zigzag, reverse_zigzag
 
 
@@ -253,7 +260,68 @@ def test_from_blocks():
     print(np.allclose(a_out, padded_img, equal_nan=True))
 
 
+def test_x_y_z_reconstruction():
+    """
+    Experiment on reconstruction x and y vectors from z
+    """
+    file_path = "./data/output/wraki_utm_idw.txt"
+    X, Y, Z = load_data(file_path)
+    print(X.shape)
+    print(Y.shape)
+    print(Z.shape)
+
+    x_start = X[0, 0]
+    y_start = Y[0, 0]
+    grid_step = X[0, 1] - X[0, 0]
+    x_end = x_start + Z.shape[1] * (grid_step)
+    y_end = y_start + Z.shape[0] * (grid_step)
+    xx = np.linspace(x_start, x_end, Z.shape[1])
+    yy = np.linspace(y_start, y_end, Z.shape[0])
+
+    X, Y = np.meshgrid(xx, yy)
+    print(X.shape)
+    print(Y.shape)
+    print(Z.shape)
+    plot_diff(X, Y, Z, Z + np.random.rand())
+    breakpoint()
+
+
+def test_plot_diff():
+    file_path = "./data/output/wraki_utm_idw.txt"
+    block_size = 8
+    decompression_acc = 0.05
+
+    # Dzialanie
+    X, Y, Z = load_data(file_path)
+
+    # Podzial na bloki
+    print("Compression...")
+    blocks, image_padding = to_blocks(Z, block_size)
+
+    # DCT w blokach
+    dct_components = []
+    for block in blocks:
+        has_none = np.any(np.isnan(block))
+        if not has_none:
+            components = find_shortest_components(
+                block, acceptable_error=decompression_acc
+            )
+            dct_components.append(components)
+        else:
+            dct_components.append(None)
+
+    # Decompression
+    print("Decompression...")
+    decompressed = decompress(dct_components, block_size, image_padding.shape)
+
+    error = np.nanmax(np.abs(decompressed - image_padding))
+    print("Err:", error)
+
+    # Plotting
+    image_out = decompressed[: Z.shape[0], : Z.shape[1]]
+    plot_diff(X, Y, Z, image_out)
+
+
 if __name__ == "__main__":
     test_shortest_components_single_block()
     test_from_blocks()
-

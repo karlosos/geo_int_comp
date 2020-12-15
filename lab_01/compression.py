@@ -142,6 +142,23 @@ def decompress(dct_components, block_size, shape):
     return out
 
 
+def plot_diff(xx, yy, orig_z, compress_z):
+    import matplotlib.pyplot as plt
+
+    fig = plt.figure()
+
+    ax2 = fig.add_subplot(121)
+    depth_map = ax2.imshow(compress_z, interpolation="none")
+    plt.colorbar(depth_map)
+
+    ax2 = fig.add_subplot(122)
+    diff = np.abs(orig_z - compress_z)
+    depth_map = ax2.imshow(diff, interpolation="none")
+    plt.colorbar(depth_map)
+
+    plt.show()
+
+
 def main():
     # Argumenty linii komend
     file_path, block_size, decompression_acc = command_line_arguments()
@@ -175,8 +192,10 @@ def main():
     # Plotting
     # TODO: what about x, y, z?
     # Need to reconsider this :O
-    image_out = image_padding[:Z.shape[0], :Z.shape[1]]
+    image_out = decompressed[: Z.shape[0], : Z.shape[1]]
     plot(X, Y, image_out)
+    
+    # TODO: saving to file
 
 
 if __name__ == "__main__":
