@@ -9,7 +9,7 @@ from compression import (
     from_blocks,
     load_data,
     plot_diff,
-    decompress,
+    decompression_blocks,
 )
 from zigzag import zigzag, reverse_zigzag
 
@@ -312,7 +312,7 @@ def test_plot_diff():
 
     # Decompression
     print("Decompression...")
-    decompressed = decompress(dct_components, block_size, image_padding.shape)
+    decompressed = decompression_blocks(dct_components, block_size, image_padding.shape)
 
     error = np.nanmax(np.abs(decompressed - image_padding))
     print("Err:", error)

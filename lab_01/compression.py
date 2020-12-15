@@ -125,7 +125,7 @@ def command_line_arguments():
     return file_path, block_size, decompression_acc
 
 
-def decompress(dct_components, block_size, shape):
+def decompression_blocks(dct_components, block_size, shape):
     block_shape = (block_size, block_size)
     _, positions = zigzag(np.zeros(block_shape))
     blocks = []
@@ -159,9 +159,90 @@ def plot_diff(xx, yy, orig_z, compress_z):
     plt.show()
 
 
-def main():
+def compression(X, Y, Z, block_size, decompression_acc):
+    # Obliczenie danych
+    x_start = X[0, 0]
+    y_start = Y[0, 0]
+    grid_step = X[0, 1] - X[0, 0]
+
+    # Podzial na bloki
+    print("Compression...")
+    blocks, image_padding = to_blocks(Z, block_size)
+
+    # DCT w blokach
+    dct_components = []
+    for block in blocks:
+        has_none = np.any(np.isnan(block))
+        if not has_none:
+            components = find_shortest_components(
+                block, acceptable_error=decompression_acc
+            )
+            dct_components.append(components)
+        else:
+            dct_components.append(None)
+    # TODO: saving to file
+    return (
+        dct_components,
+        block_size,
+        image_padding.shape,
+        Z.shape,
+        x_start,
+        y_start,
+        grid_step,
+    )
+
+
+def decompression(
+    dct_components, block_size, padded_shape, orig_shape, x_start, y_start, grid_step
+):
+    print("Decompression...")
+    decompressed = decompression_blocks(dct_components, block_size, padded_shape)
+
+    # Plotting
+    x_end = x_start + orig_shape[1] * (grid_step)
+    y_end = y_start + orig_shape[0] * (grid_step)
+    xx = np.linspace(x_start, x_end, orig_shape[1])
+    yy = np.linspace(y_start, y_end, orig_shape[0])
+
+    X, Y = np.meshgrid(xx, yy)
+    image_out = decompressed[: orig_shape[0], : orig_shape[1]]
+    plot(X, Y, image_out)
+
+
+def test_compression_decompression():
     # Argumenty linii komend
     file_path, block_size, decompression_acc = command_line_arguments()
+
+    # Dzialanie
+    X, Y, Z = load_data(file_path)
+
+    (
+        dct_components,
+        block_size,
+        padded_shape,
+        orig_shape,
+        x_start,
+        y_start,
+        grid_step,
+    ) = compression(X, Y, Z, block_size, decompression_acc)
+
+    # Decompression
+    decompression(
+        dct_components,
+        block_size,
+        padded_shape,
+        orig_shape,
+        x_start,
+        y_start,
+        grid_step,
+    )
+
+
+def test_compression_decompression():
+    # Argumenty linii komend
+    file_path = "./data/output/wraki_utm_idw.txt"
+    block_size = 8
+    decompression_acc = 0.05
 
     # Dzialanie
     X, Y, Z = load_data(file_path)
@@ -184,7 +265,7 @@ def main():
 
     # Decompression
     print("Decompression...")
-    decompressed = decompress(dct_components, block_size, image_padding.shape)
+    decompressed = decompression_blocks(dct_components, block_size, image_padding.shape)
 
     error = np.nanmax(np.abs(decompressed - image_padding))
     print("Err:", error)
@@ -194,9 +275,9 @@ def main():
     # Need to reconsider this :O
     image_out = decompressed[: Z.shape[0], : Z.shape[1]]
     plot(X, Y, image_out)
-    
+
     # TODO: saving to file
 
 
 if __name__ == "__main__":
-    main()
+    test_compression_decompression()
