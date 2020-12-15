@@ -1,11 +1,27 @@
-<h1 align="center">JAD - Języki Analizy Danych</h1>
-<h2 align="center">Dane hydrograficzne</h2>
+<p align="center">
+    <img src="https://i.imgur.com/EKQnOc1.png" width="600px" alt="logo"/>
+</p>
 
-<div align="center">
+***
 
-</div>
 
-## For development
+<h4 align="center">A simple toolset for geospatial (hydrologic) data. Implemented data interpolation with moving average and IDW, and data compression using DCT. Created for Data Science Languages course in 2020.</h4>
+
+<p align="center">
+  <a href="#key-features">Key Features</a> •
+  <a href="#how-to-use">How To Use</a> •
+  <a href="#download">Download</a> •
+  <a href="#development">Download</a> •
+  <a href="#license">License</a>
+</p>
+
+## Key Features
+
+
+
+## How To Use
+
+## Development
 
 1. Create virtual environment with `virtualenv .venv`.
 2. Activate venv with `.venv\Scripts\activate.bat`.
