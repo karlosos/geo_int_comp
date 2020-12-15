@@ -252,6 +252,8 @@ def test_compression_decompression():
     # Kompresja
     X, Y, Z = load_data(file_path)
 
+    print()
+
     (
         dct_components,
         block_size,
@@ -281,6 +283,7 @@ def test_compression_decompression():
 
     input_size = os.stat(file_path).st_size
     output_size = os.stat(output_path).st_size
+    print()
     console = Console()
     console.print(
         f"Rozmiar przed kompresją: [bold red]{np.round(input_size / (1024 * 1024), 3)}[/bold red] MB"
@@ -289,7 +292,24 @@ def test_compression_decompression():
         f"Rozmiar po kompresji: [bold green]{np.round(output_size / (1024 * 1024), 3)}[/bold green] MB"
     )
     console.print(
-        f"Współczynnik kompresji: [bold green]{np.round(input_size/output_size)}  [{np.round(output_size / input_size * 100)}%][/bold green]"
+        f"Współczynnik kompresji: [bold green]{np.round(input_size/output_size, 2)}  [{np.round(output_size / input_size * 100)}%][/bold green]"
+    )
+
+    # ZIP
+    import zipfile
+
+    zip_path = file_path + ".zip"
+    my_zipfile = zipfile.ZipFile(zip_path, mode="w", compression=zipfile.ZIP_DEFLATED)
+
+    my_zipfile.write(output_path)
+    my_zipfile.close()
+
+    zip_size = os.stat(zip_path).st_size
+    console.print(
+        f"Rozmiar po kompresji ZIP: [bold green]{np.round(zip_size / (1024 * 1024), 3)}[/bold green] MB"
+    )
+    console.print(
+        f"Współczynnik kompresji po ZIP: [bold green]{np.round(input_size/zip_size, 2)}  [{np.round(zip_size / input_size * 100)}%][/bold green]"
     )
 
 
