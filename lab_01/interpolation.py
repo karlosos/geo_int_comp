@@ -21,6 +21,7 @@ Parametry programu:
     --window_type=circle - ustawienie typu okna. Możliwe do ustawienia wartości [circle|rect]
     --method=ma - metoda interpolacji. Możliwe do wyboru [ma|idw|both]
     -o "nazwa_pliku" - plik wyjściowy. Jeśli ustawiony, zapisze wynik interpolacji do pliku w formacie UTM XYZ.
+    --pickle - plik wyjściowy w formie binarnej. Tylko Z (jako obraz)
 """
 
 import pandas as pd
@@ -142,6 +143,23 @@ def save_xyz(file_name, xx, yy, zz):
     print(xyz)
 
 
+def save_binary(file_name, zz):
+    import pickle
+
+    f = open(file_name, "wb")
+    pickle.dump(zz, f)
+    f.close()
+
+
+def load_binary(file_name):
+    import pickle
+
+    f = open(file_name, "rb")
+    zz = pickle.load(f)
+    f.close()
+    return zz
+
+
 def main():
     # Wczytywanie argumentów wywołania
     parser = argparse.ArgumentParser()
@@ -178,6 +196,11 @@ def main():
         help="metoda interpolacji. idw, ma lub both. Domyślnie ma (moving_average)",
     )
     parser.add_argument("--idw_exponent", help="wykładnik w metodzie idw. Domyślnie 2")
+    parser.add_argument(
+        "--pickle",
+        help="czy zapisać w formie binarnej. Domyślnie false.",
+        action="store_true",
+    )
 
     args = parser.parse_args()
 
@@ -240,7 +263,10 @@ def main():
         zz = moving_average(data, tree, xx, yy, min_n_points, window_size, window_type)
 
         if args.o is not None:
-            save_xyz(args.o + "_ma.txt", xx, yy, zz)
+            if args.pickle:
+                save_binary(args.o + "_ma.pckl", zz)
+            else:
+                save_xyz(args.o + "_ma.txt", xx, yy, zz)
 
         if plot:
             plot(xx, yy, zz)
@@ -251,7 +277,10 @@ def main():
         )
 
         if args.o is not None:
-            save_xyz(args.o + "_idw.txt", xx, yy, zz)
+            if args.pickle:
+                save_binary(args.o + "_idw.pckl", zz)
+            else:
+                save_xyz(args.o + "_idw.txt", xx, yy, zz)
 
         if plot:
             plot(xx, yy, zz)
