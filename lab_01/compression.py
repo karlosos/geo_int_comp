@@ -7,7 +7,7 @@ from rich.console import Console
 import pickle
 
 from zigzag import zigzag, reverse_zigzag
-from interpolation import plot
+from interpolation import plot, load_binary
 
 
 def load_data(file_path):
@@ -96,11 +96,11 @@ def command_line_arguments():
     parser.add_argument(
         "--decompression_acc",
         help=(
-            "Dokładność dekompresji. Liczba w wartości bewzględnej, np. 5cm, "
+            "Dokładność dekompresji. Liczba w wartości bewzględnej, np. 0.05m, "
             "oznacza to, że po dekompresji w żadnym punkcie błąd nie "
             "przekroczy tej wartości."
         ),
-        type=int,
+        type=float,
     )
     parser.add_argument(
         "--zip",
@@ -210,6 +210,7 @@ def compression(X, Y, Z, block_size, decompression_acc, output_path):
         x_start,
         y_start,
         grid_step,
+        t,
     )
 
 
@@ -241,16 +242,26 @@ def print_options(file_path, block_size, decompression_acc):
     console.print(f"Zadana dokładność: [bold cyan]{decompression_acc}[/bold cyan]")
 
 
-def test_compression_decompression():
-    file_path = "./data/output/wraki_utm_idw.txt"
+def main():
+    # Argumenty programu
+
+    # file_path = "./data/output/UTM-obrotnica_0.5_ma.pckl"
+    # block_size = 8
+    # decompression_acc = 0.05
+
+    file_path, block_size, decompression_acc = command_line_arguments()
     output_path = file_path + "_compressed.pckl"
-    block_size = 8
-    decompression_acc = 0.1
 
     print_options(file_path, block_size, decompression_acc)
 
     # Kompresja
-    X, Y, Z = load_data(file_path)
+
+    # X, Y, Z = load_data(file_path) - if from text file
+
+    Z = load_binary(file_path)
+    x = np.arange(Z.shape[1])
+    y = np.arange(Z.shape[0])
+    X, Y = np.meshgrid(x, y)
 
     print()
 
@@ -313,44 +324,5 @@ def test_compression_decompression():
     )
 
 
-def main():
-    # Argumenty linii komend
-    file_path, block_size, decompression_acc = command_line_arguments()
-
-    # Dzialanie
-    X, Y, Z = load_data(file_path)
-
-    # Podzial na bloki
-    print("Compression...")
-    blocks, image_padding = to_blocks(Z, block_size)
-
-    # DCT w blokach
-    dct_components = []
-    for block in blocks:
-        has_none = np.any(np.isnan(block))
-        if not has_none:
-            components = find_shortest_components(
-                block, acceptable_error=decompression_acc
-            )
-            dct_components.append(components)
-        else:
-            dct_components.append(None)
-
-    # Decompression
-    print("Decompression...")
-    decompressed = decompression_blocks(dct_components, block_size, image_padding.shape)
-
-    error = np.nanmax(np.abs(decompressed - image_padding))
-    print("Err:", error)
-
-    # Plotting
-    # TODO: what about x, y, z?
-    # Need to reconsider this :O
-    image_out = decompressed[: Z.shape[0], : Z.shape[1]]
-    plot(X, Y, image_out)
-
-    # TODO: saving to file
-
-
 if __name__ == "__main__":
-    test_compression_decompression()
+    main()

@@ -268,7 +268,7 @@ def main():
             else:
                 save_xyz(args.o + "_ma.txt", xx, yy, zz)
 
-        if plot:
+        if args.plot:
             plot(xx, yy, zz)
 
     if method in ["idw", "both"]:
@@ -282,7 +282,7 @@ def main():
             else:
                 save_xyz(args.o + "_idw.txt", xx, yy, zz)
 
-        if plot:
+        if args.plot:
             plot(xx, yy, zz)
 
 
