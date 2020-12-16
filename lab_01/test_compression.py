@@ -322,6 +322,54 @@ def test_plot_diff():
     plot_diff(X, Y, Z, image_out)
 
 
+def test_unzip():
+    file_path = "./data/output/wraki_utm_0.05_ma.pckl.zip"
+    import zipfile
+
+    with zipfile.ZipFile(file_path, "r") as zip_obj:
+        zip_obj.extractall(path="./.tmp/")
+
+
+def test_plot_from_compressed():
+    import pickle
+    from rich.console import Console
+    import time
+
+    with open("./.tmp/data/output/wraki_utm_0.05_ma.pckl_compressed.pckl", 'rb') as f:
+        data = pickle.load(f)
+
+    (
+        dct_components,
+        block_size,
+        padded_shape,
+        orig_shape,
+        x_start,
+        y_start,
+        grid_step,
+    ) = data
+
+    t1 = time.time()
+    decompressed = decompression_blocks(dct_components, block_size, padded_shape)
+    t = time.time() - t1
+    console = Console()
+    console.print(f"Odtworzono dane w [bold green]{np.round(t, 3)}[/bold green] s.")
+
+    # Plotting
+    x_end = x_start + orig_shape[1] * (grid_step)
+    y_end = y_start + orig_shape[0] * (grid_step)
+    xx = np.linspace(x_start, x_end, orig_shape[1])
+    yy = np.linspace(y_start, y_end, orig_shape[0])
+
+    X, Y = np.meshgrid(xx, yy)
+    image_out = decompressed[: orig_shape[0], : orig_shape[1]]
+
+    from interpolation import plot
+    plot(X, Y, image_out)
+    return image_out
+
+
 if __name__ == "__main__":
-    test_shortest_components_single_block()
-    test_from_blocks()
+    # test_shortest_components_single_block()
+    # test_from_blocks()
+    # test_unzip()
+    test_plot_from_compressed()

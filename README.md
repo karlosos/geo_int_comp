@@ -5,7 +5,7 @@
 ***
 
 
-<h4 align="center">A simple toolset for geospatial (hydrologic) data. Implemented data interpolation with moving average and IDW, and data compression using DCT. Created for Data Science Languages course in 2020.</h4>
+<h4 align="center">A simple toolset for geospatial (hydrologic) data. Implemented interpolation using moving average and IDW, and compression using DCT. Created for Data Science Languages course in 2020.</h4>
 
 <p align="center">
   <a href="#key-features">Key Features</a> •

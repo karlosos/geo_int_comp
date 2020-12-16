@@ -61,12 +61,14 @@ def experiment(file_path, block_size, decompression_acc):
 
 
 if __name__ == "__main__":
+    # file_name = "UTM-brama_0.5_idw.pckl"
+    file_name = "UTM-obrotnica_0.5_idw.pckl"
+    # file_name = "UTM-brama_0.5_idw.pckl"
+    file_path = f"./data/output/{file_name}"
     data = {"block_size": [], "time": [], "cr": [], "cr_zip": [], "mean_error": []}
     block_sizes = [*range(2, 32, 2), *range(40, 200, 20)]
     for block_size in tqdm(block_sizes):
-        t, compression_rate, compression_rate_zip, mean_error = experiment(
-            "./data/output/UTM-brama_0.5_idw.pckl", block_size, 0.05
-        )
+        t, compression_rate, compression_rate_zip, mean_error = experiment(file_path, block_size, 0.05)
         data["block_size"].append(block_size)
         data["time"].append(t)
         data["cr"].append(compression_rate)
@@ -76,5 +78,5 @@ if __name__ == "__main__":
     import pandas as pd
 
     df = pd.DataFrame.from_dict(data)
-    df.to_csv("exp_block_sizes.csv")
+    df.to_csv("exp_block_sizes_{file_name}.csv")
     print(df)
