@@ -67,7 +67,7 @@ def from_blocks(blocks, block_size, image_shape):
         for j in range(width // ws):
             image[i * ws : i * ws + ws, j * ws : j * ws + ws] = blocks[index]
             index += 1
-return image
+    return image
 
 
 def find_shortest_components(block, acceptable_error):
@@ -307,7 +307,7 @@ def main():
     )
 
     # ZIP
-import zipfile
+    import zipfile
 
     zip_path = file_path + ".zip"
     my_zipfile = zipfile.ZipFile(zip_path, mode="w", compression=zipfile.ZIP_DEFLATED)
