@@ -1,3 +1,5 @@
+# python .\compression.py -i ".\data\output\UTM-brama_0.5_idw.pckl" --decompression_acc=0.05 --zip --block_size=20
+
 import argparse
 import time
 import numpy as np
@@ -273,6 +275,7 @@ def main():
         x_start,
         y_start,
         grid_step,
+        t,
     ) = compression(X, Y, Z, block_size, decompression_acc, output_path)
 
     # Dekompresja
