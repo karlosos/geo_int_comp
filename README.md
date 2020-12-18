@@ -92,3 +92,9 @@ optional arguments:
 ## Dataset
 
 Data was ignored in this repo as it would take to long to upload it. Sorry. 😥
+
+## Why the hell didn't you refactor this? :angry:
+
+I got my grade and this code won't be used again.
+
+> "Let me stress that it’s these changes that drive the need to perform refactoring. If the code works and doesn’t ever need to change, it’s perfectly fine to leave it alone. It would be nice to improve it, but unless someone needs to understand it, it isn’t causing any real harm. Yet as soon as someone does need to understand how that code works, and struggles to follow it, then you have to do something about it." Martin Fowler - Refactoring
