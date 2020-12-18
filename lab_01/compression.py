@@ -252,7 +252,7 @@ def main():
     # decompression_acc = 0.05
 
     file_path, block_size, decompression_acc = command_line_arguments()
-    output_path = file_path + "_compressed.pckl"
+    output_path = file_path + "_compressed_tmp.pckl"
 
     print_options(file_path, block_size, decompression_acc)
 
