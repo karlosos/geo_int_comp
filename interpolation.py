@@ -195,7 +195,7 @@ def main():
         "--method",
         help="metoda interpolacji. idw, ma lub both. Domyślnie ma (moving_average)",
     )
-    parser.add_argument("--idw_exponent", help="wykładnik w metodzie idw. Domyślnie 2")
+    parser.add_argument("--idw_exponent", help="wykładnik w metodzie idw. Domyślnie 2", type=int)
     parser.add_argument(
         "--pickle",
         help="czy zapisać w formie binarnej. Domyślnie false.",
