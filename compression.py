@@ -290,7 +290,7 @@ def main():
     )
 
     # Porównanie różnicy
-    plot_diff(X, Y, Z, Z_out)
+    # plot_diff(X, Y, Z, Z_out)
 
     # Porównanie rozmiarów
     import os
